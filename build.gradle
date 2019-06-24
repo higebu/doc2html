@@ -5,6 +5,7 @@ plugins {
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -14,6 +15,8 @@ dependencies {
 
     compile 'org.apache.poi:poi-scratchpad:4.1.0'
     compile 'info.picocli:picocli:4.0.0-beta-2'
+    compile group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.11'
+    compile 'com.google.guava:guava:28.0-jre'
 }
 
 mainClassName = 'doc2html.Doc2HTML'

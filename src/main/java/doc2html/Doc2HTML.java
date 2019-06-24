@@ -5,6 +5,9 @@ package doc2html;
 
 import java.io.*;
 import java.util.concurrent.Callable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -15,8 +18,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.poi.hwpf.HWPFDocumentCore;
+import org.apache.poi.hwpf.converter.PicturesManager;
 import org.apache.poi.hwpf.converter.WordToHtmlConverter;
 import org.apache.poi.hwpf.converter.WordToHtmlUtils;
+import org.apache.poi.hwpf.usermodel.PictureType;
 
 import org.w3c.dom.Document;
 
@@ -24,6 +29,9 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+
+import org.apache.batik.transcoder.*;
+import org.apache.batik.transcoder.wmf.tosvg.*;
 
 
 
@@ -35,6 +43,10 @@ public class Doc2HTML implements Callable<Integer> {
 
 	@Option(names = { "-o", "--output" }, description = "output file.")
 	File output;
+
+	@Option(names = {
+			"--images" }, defaultValue = "./images", description = "images directory. (default: ${DEFAULT-VALUE})")
+	Path images;
 
 	public static String documentToString(Document d) {
 		try {
@@ -73,10 +85,42 @@ public class Doc2HTML implements Callable<Integer> {
 			} else {
 				is = System.in;
 			}
+			Files.createDirectories(images);
 			HWPFDocumentCore wordDocument = WordToHtmlUtils.loadDoc(is);
-			InlineImageWordToHtmlConverter converter = new InlineImageWordToHtmlConverter(
+			WordToHtmlConverter converter = new WordToHtmlConverter(
 					DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
-
+			converter.setPicturesManager(new PicturesManager() {
+				public String savePicture(byte[] content, PictureType pictureType, String suggestedName,
+						float widthinches, float heightinches) {
+					Path imgPath = Paths.get(images.getFileName().toString(), suggestedName);
+					if (pictureType == PictureType.WMF) {
+						// convert to jpeg
+						imgPath = Paths.get(images.getFileName().toString(),
+								com.google.common.io.Files.getNameWithoutExtension(suggestedName) + ".svg");
+						try {
+							TranscoderInput ti = new TranscoderInput(new ByteArrayInputStream(content));
+							TranscoderOutput to = new TranscoderOutput(Files.newOutputStream(imgPath));
+							WMFTranscoder transcoder = new WMFTranscoder();
+							transcoder.transcode(ti, to);
+						} catch (Exception e) {
+							System.out.printf("failed to convert %s to svg\n", suggestedName);
+							imgPath = Paths.get(images.getFileName().toString(), suggestedName);
+							try {
+								Files.write(imgPath, content);
+							} catch (IOException io) {
+								io.printStackTrace();
+							}
+						}
+					} else {
+						try {
+							Files.write(imgPath, content);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+					return imgPath.toString();
+				}
+			});
 			converter.processDocument(wordDocument);
 			Document htmlDocument = converter.getDocument();
 
