@@ -11,3 +11,11 @@ doc2html -i a.doc -o a.html
 ```
 ./gradlew assemble
 ```
+
+## Install
+
+```
+wget https://github.com/higebu/doc2html/releases/download/v0.0.1/doc2html.zip
+unzip doc2html.zip
+export PATH=$PATH:$(pwd)/doc2html/bin
+```
