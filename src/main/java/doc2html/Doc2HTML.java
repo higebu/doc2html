@@ -23,13 +23,14 @@ import org.w3c.dom.Document;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 
 
 @Command(description = "doc. file to html", name = "doc2html", mixinStandardHelpOptions = true, version = "v0.0.1")
 public class Doc2HTML implements Callable<Integer> {
 
-	@Option(names = { "-i", "--input" }, required = true, description = "input file.")
+	@Option(names = { "-i", "--input" }, description = "input file.")
 	File input;
 
 	@Option(names = { "-o", "--output" }, description = "output file.")
@@ -66,7 +67,13 @@ public class Doc2HTML implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		try {
-			HWPFDocumentCore wordDocument = WordToHtmlUtils.loadDoc(new FileInputStream(input));
+			InputStream is;
+			if (input != null) {
+				is = new FileInputStream(input);
+			} else {
+				is = System.in;
+			}
+			HWPFDocumentCore wordDocument = WordToHtmlUtils.loadDoc(is);
 			InlineImageWordToHtmlConverter converter = new InlineImageWordToHtmlConverter(
 					DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
 
