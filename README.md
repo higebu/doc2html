@@ -15,7 +15,7 @@ doc2html -i a.doc -o a.html
 ## Install
 
 ```
-wget https://github.com/higebu/doc2html/releases/download/v0.0.2/doc2html.zip
+wget https://github.com/higebu/doc2html/releases/download/v0.0.3/doc2html.zip
 unzip doc2html.zip
 export PATH=$PATH:$(pwd)/doc2html/bin
 ```

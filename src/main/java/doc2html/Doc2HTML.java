@@ -35,7 +35,7 @@ import org.apache.batik.transcoder.wmf.tosvg.*;
 
 
 
-@Command(description = "doc. file to html", name = "doc2html", mixinStandardHelpOptions = true, version = "v0.0.2")
+@Command(description = "doc. file to html", name = "doc2html", mixinStandardHelpOptions = true, version = "v0.0.3")
 public class Doc2HTML implements Callable<Integer> {
 
 	@Option(names = { "-i", "--input" }, description = "input file.")
